@@ -64,15 +64,27 @@ func (o *Once) doContext(ctx context.Context, f func() error) error {
 
 	doneCh := make(chan struct{})
 	var funcErr error
+	var panicErr any = nil
 	go func() {
+		defer close(doneCh)
+
+		defer func() {
+			if r := recover(); r != nil {
+				panicErr = r
+			}
+		}()
+
 		funcErr = f()
-		close(doneCh)
 	}()
 
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-doneCh:
+		if panicErr != nil {
+			panic(panicErr)
+		}
+
 		return funcErr
 	}
 }
