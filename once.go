@@ -2,17 +2,28 @@ package sync
 
 import (
 	"context"
-	"sync"
 	"sync/atomic"
 	"time"
 )
 
-type Once struct {
-	m    sync.Mutex
+type Once interface {
+	Do(f func() error) error
+	DoTimeout(timeout time.Duration, f func() error) error
+	DoContext(ctx context.Context, f func() error) error
+}
+
+func NewOnce() Once {
+	return &once{
+		m: NewMutex(),
+	}
+}
+
+type once struct {
+	m    Mutex
 	done uint32
 }
 
-func (o *Once) Do(f func() error) error {
+func (o *once) Do(f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
 	}
@@ -27,7 +38,7 @@ func (o *Once) Do(f func() error) error {
 	return nil
 }
 
-func (o *Once) DoTimeout(timeout time.Duration, f func() error) error {
+func (o *once) DoTimeout(timeout time.Duration, f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
 	}
@@ -36,15 +47,19 @@ func (o *Once) DoTimeout(timeout time.Duration, f func() error) error {
 	defer o.m.Unlock()
 
 	if o.done == 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		return o.doContext(ctx, f)
+		if timeout > 0 {
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			return o.doContext(ctx, f)
+		} else {
+			return o.doContext(context.Background(), f)
+		}
 	}
 
 	return nil
 }
 
-func (o *Once) DoContext(ctx context.Context, f func() error) error {
+func (o *once) DoContext(ctx context.Context, f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
 	}
@@ -59,7 +74,7 @@ func (o *Once) DoContext(ctx context.Context, f func() error) error {
 	return nil
 }
 
-func (o *Once) doContext(ctx context.Context, f func() error) error {
+func (o *once) doContext(ctx context.Context, f func() error) error {
 	defer atomic.StoreUint32(&o.done, 1)
 
 	doneCh := make(chan struct{})

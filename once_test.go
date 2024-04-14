@@ -8,7 +8,7 @@ import (
 )
 
 func TestTimeout(t *testing.T) {
-	once := Once{}
+	once := once{}
 
 	err := once.DoTimeout(100*time.Millisecond, func() error {
 		time.Sleep(200 * time.Millisecond)
@@ -24,7 +24,7 @@ func (o *one) Increment() {
 	*o++
 }
 
-func run(t *testing.T, once *Once, o *one, c chan bool) {
+func run(t *testing.T, once *once, o *one, c chan bool) {
 	once.Do(func() error {
 		o.Increment()
 		return nil
@@ -37,7 +37,7 @@ func run(t *testing.T, once *Once, o *one, c chan bool) {
 
 func TestOnce(t *testing.T) {
 	o := new(one)
-	once := new(Once)
+	once := new(once)
 	c := make(chan bool)
 	const N = 10
 	for i := 0; i < N; i++ {
@@ -52,11 +52,11 @@ func TestOnce(t *testing.T) {
 }
 
 func TestOncePanic(t *testing.T) {
-	var once Once
+	var once once
 	func() {
 		defer func() {
 			if r := recover(); r == nil {
-				t.Fatalf("Once.Do did not panic")
+				t.Fatalf("once.Do did not panic")
 			}
 		}()
 		once.Do(func() error {
@@ -65,13 +65,13 @@ func TestOncePanic(t *testing.T) {
 	}()
 
 	once.Do(func() error {
-		t.Fatalf("Once.Do called twice")
+		t.Fatalf("once.Do called twice")
 		return nil
 	})
 }
 
 func BenchmarkOnce(b *testing.B) {
-	var once Once
+	var once once
 	f := func() error { return nil }
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

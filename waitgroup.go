@@ -9,7 +9,7 @@ type WaitGroup interface {
 }
 
 func NewWaitGroup() WaitGroup {
-	if Opts.Debug {
+	if debug {
 		return &loggedWaitGroup{}
 	}
 	return &sync.WaitGroup{}
@@ -23,7 +23,7 @@ func (wg *loggedWaitGroup) Wait() {
 	start := timeNow()
 	wg.WaitGroup.Wait()
 	duration := timeNow().Sub(start)
-	if duration >= Opts.Threshold {
-		Opts.log.Debugf("WaitGroup took %v at %s", duration, getHolder())
+	if duration >= threshold {
+		l.Debugf("WaitGroup took %v at %s", duration, getHolder())
 	}
 }

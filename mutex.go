@@ -12,10 +12,10 @@ type Mutex interface {
 }
 
 func NewMutex() Mutex {
-	if Opts.UseDeadlock {
+	if useDeadlock {
 		return &deadlock.Mutex{}
 	}
-	if Opts.Debug {
+	if debug {
 		mutex := &loggedMutex{}
 		mutex.holder.Store(holder{})
 		return mutex
@@ -36,8 +36,8 @@ func (m *loggedMutex) Lock() {
 func (m *loggedMutex) Unlock() {
 	currentHolder := m.holder.Load().(holder)
 	duration := timeNow().Sub(currentHolder.time)
-	if duration >= Opts.Threshold {
-		Opts.log.Debugf("Mutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
+	if duration >= threshold {
+		l.Debugf("Mutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
 	}
 	m.holder.Store(holder{})
 	m.Mutex.Unlock()

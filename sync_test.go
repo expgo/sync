@@ -20,7 +20,7 @@ const (
 )
 
 func TestTypes(t *testing.T) {
-	Opts.Debug = false
+	debug = false
 
 	if _, ok := NewMutex().(*sync.Mutex); !ok {
 		t.Error("Wrong type")
@@ -34,7 +34,7 @@ func TestTypes(t *testing.T) {
 		t.Error("Wrong type")
 	}
 
-	Opts.Debug = true
+	debug = true
 
 	if _, ok := NewMutex().(*loggedMutex); !ok {
 		t.Error("Wrong type")
@@ -48,7 +48,7 @@ func TestTypes(t *testing.T) {
 		t.Error("Wrong type")
 	}
 
-	Opts.Debug = false
+	debug = false
 }
 
 func TestMutex(t *testing.T) {
@@ -57,12 +57,13 @@ func TestMutex(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	Opts.Debug = true
-	Opts.Threshold = logThreshold
+	debug = true
+	threshold = logThreshold
 
 	var messages []string
 
-	Opts.log = &logger{
+	l = &logger{
+		enableDebug: true,
 		hook: func(msg string) {
 			messages = append(messages, msg)
 		},
@@ -85,7 +86,7 @@ func TestMutex(t *testing.T) {
 		t.Errorf("Unexpected message count")
 	}
 
-	Opts.Debug = false
+	debug = false
 }
 
 func TestRWMutex(t *testing.T) {
@@ -94,12 +95,13 @@ func TestRWMutex(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	Opts.Debug = true
-	Opts.Threshold = logThreshold
+	debug = true
+	threshold = logThreshold
 
 	var messages []string
 
-	Opts.log = &logger{
+	l = &logger{
+		enableDebug: true,
 		hook: func(msg string) {
 			messages = append(messages, msg)
 		},
@@ -155,7 +157,7 @@ func TestRWMutex(t *testing.T) {
 	mut.RUnlock()
 	mut.RUnlock()
 
-	Opts.Debug = false
+	debug = false
 }
 
 func TestWaitGroup(t *testing.T) {
@@ -164,12 +166,13 @@ func TestWaitGroup(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	Opts.Debug = true
-	Opts.Threshold = logThreshold
+	debug = true
+	threshold = logThreshold
 
 	var messages []string
 
-	Opts.log = &logger{
+	l = &logger{
+		enableDebug: true,
 		hook: func(msg string) {
 			messages = append(messages, msg)
 		},
@@ -209,7 +212,7 @@ func TestWaitGroup(t *testing.T) {
 		t.Errorf("Unexpected message count")
 	}
 
-	Opts.Debug = false
+	debug = false
 }
 
 func TestTimeoutCond(t *testing.T) {

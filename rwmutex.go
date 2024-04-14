@@ -14,10 +14,10 @@ type RWMutex interface {
 }
 
 func NewRWMutex() RWMutex {
-	if Opts.UseDeadlock {
+	if useDeadlock {
 		return &deadlock.RWMutex{}
 	}
-	if Opts.Debug {
+	if debug {
 		mutex := &loggedRWMutex{
 			readHolders: make(map[int][]holder),
 			unlockers:   make(chan holder, 1024),
@@ -51,7 +51,7 @@ func (m *loggedRWMutex) Lock() {
 
 	duration := h.time.Sub(start)
 
-	if duration > Opts.Threshold {
+	if duration > threshold {
 		var unlockerStrings []string
 	loop:
 		for {
@@ -62,15 +62,15 @@ func (m *loggedRWMutex) Lock() {
 				break loop
 			}
 		}
-		Opts.log.Debugf("RWMutex took %v to lock. Locked at %s. RUnlockers while locking:\n%s", duration, h.at, strings.Join(unlockerStrings, "\n"))
+		l.Debugf("RWMutex took %v to lock. Locked at %s. RUnlockers while locking:\n%s", duration, h.at, strings.Join(unlockerStrings, "\n"))
 	}
 }
 
 func (m *loggedRWMutex) Unlock() {
 	currentHolder := m.holder.Load().(holder)
 	duration := timeNow().Sub(currentHolder.time)
-	if duration >= Opts.Threshold {
-		Opts.log.Debugf("RWMutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
+	if duration >= threshold {
+		l.Debugf("RWMutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
 	}
 	m.holder.Store(holder{})
 	m.RWMutex.Unlock()
@@ -97,7 +97,7 @@ func (m *loggedRWMutex) RUnlock() {
 		select {
 		case m.unlockers <- h:
 		default:
-			Opts.log.Debugf("Dropped holder %s as channel full", h)
+			l.Debugf("Dropped holder %s as channel full", h)
 		}
 	}
 	m.RWMutex.RUnlock()

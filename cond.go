@@ -16,7 +16,7 @@ type TimeoutCond struct {
 }
 
 // TimeoutCondWaiter is a type allowing a consumer to wait on a TimeoutCond with a timeout. Wait() may be called multiple times,
-// and will return true every time that the TimeoutCond is broadcast to. Once the configured timeout
+// and will return true every time that the TimeoutCond is broadcast to. once the configured timeout
 // expires, Wait() will return false.
 // Call Stop() to release resources once this TimeoutCondWaiter is no longer needed.
 type TimeoutCondWaiter struct {
