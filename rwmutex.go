@@ -85,7 +85,7 @@ func (m *loggedRWMutex) RLock() {
 }
 
 func (m *loggedRWMutex) RUnlock() {
-	id := goid()
+	id := GoId()
 	m.readHoldersMut.Lock()
 	current := m.readHolders[id]
 	if len(current) > 0 {

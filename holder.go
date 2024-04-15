@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -21,7 +19,7 @@ func (h holder) String() string {
 	if h.at == "" {
 		return "not held"
 	}
-	return fmt.Sprintf("at %s goid: %d for %s", h.at, h.goid, timeNow().Sub(h.time))
+	return fmt.Sprintf("at %s GoId: %d for %s", h.at, h.goid, timeNow().Sub(h.time))
 }
 
 func getHolder() holder {
@@ -29,18 +27,7 @@ func getHolder() holder {
 	file = filepath.Join(filepath.Base(filepath.Dir(file)), filepath.Base(file))
 	return holder{
 		at:   fmt.Sprintf("%s:%d", file, line),
-		goid: goid(),
+		goid: GoId(),
 		time: timeNow(),
 	}
-}
-
-func goid() int {
-	var buf [64]byte
-	n := runtime.Stack(buf[:], false)
-	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
-	id, err := strconv.Atoi(idField)
-	if err != nil {
-		return -1
-	}
-	return id
 }
