@@ -15,7 +15,7 @@ func NewMutex() Mutex {
 	if useDeadlock {
 		return &deadlock.Mutex{}
 	}
-	if debug {
+	if logSlowLock {
 		mutex := &loggedMutex{}
 		mutex.holder.Store(holder{})
 		return mutex
@@ -36,7 +36,7 @@ func (m *loggedMutex) Lock() {
 func (m *loggedMutex) Unlock() {
 	currentHolder := m.holder.Load().(holder)
 	duration := timeNow().Sub(currentHolder.time)
-	if duration >= threshold {
+	if duration >= slowLockThreshold {
 		l.Debugf("Mutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
 	}
 	m.holder.Store(holder{})

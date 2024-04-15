@@ -20,7 +20,7 @@ const (
 )
 
 func TestTypes(t *testing.T) {
-	debug = false
+	logSlowLock = false
 
 	if _, ok := NewMutex().(*sync.Mutex); !ok {
 		t.Error("Wrong type")
@@ -34,7 +34,7 @@ func TestTypes(t *testing.T) {
 		t.Error("Wrong type")
 	}
 
-	debug = true
+	logSlowLock = true
 
 	if _, ok := NewMutex().(*loggedMutex); !ok {
 		t.Error("Wrong type")
@@ -48,7 +48,7 @@ func TestTypes(t *testing.T) {
 		t.Error("Wrong type")
 	}
 
-	debug = false
+	logSlowLock = false
 }
 
 func TestMutex(t *testing.T) {
@@ -57,8 +57,8 @@ func TestMutex(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	debug = true
-	threshold = logThreshold
+	logSlowLock = true
+	slowLockThreshold = logThreshold
 
 	var messages []string
 
@@ -86,7 +86,7 @@ func TestMutex(t *testing.T) {
 		t.Errorf("Unexpected message count")
 	}
 
-	debug = false
+	logSlowLock = false
 }
 
 func TestRWMutex(t *testing.T) {
@@ -95,8 +95,8 @@ func TestRWMutex(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	debug = true
-	threshold = logThreshold
+	logSlowLock = true
+	slowLockThreshold = logThreshold
 
 	var messages []string
 
@@ -157,7 +157,7 @@ func TestRWMutex(t *testing.T) {
 	mut.RUnlock()
 	mut.RUnlock()
 
-	debug = false
+	logSlowLock = false
 }
 
 func TestWaitGroup(t *testing.T) {
@@ -166,8 +166,8 @@ func TestWaitGroup(t *testing.T) {
 	timeNow = clock.Now
 	defer func() { timeNow = oldClock }()
 
-	debug = true
-	threshold = logThreshold
+	logSlowLock = true
+	slowLockThreshold = logThreshold
 
 	var messages []string
 
@@ -212,7 +212,7 @@ func TestWaitGroup(t *testing.T) {
 		t.Errorf("Unexpected message count")
 	}
 
-	debug = false
+	logSlowLock = false
 }
 
 func TestTimeoutCond(t *testing.T) {

@@ -8,22 +8,24 @@ import (
 )
 
 var (
-	threshold   = 100 * time.Millisecond
-	l           = &logger{}
-	debug       = false
-	useDeadlock = false
+	logSlowLock       = false
+	slowLockThreshold = 100 * time.Millisecond
+	l                 = &logger{}
+	useDeadlock       = false
 )
 
 func init() {
-	if b, err := strconv.ParseBool(os.Getenv("SYNC_DEBUG")); err == nil {
+	if b, err := strconv.ParseBool(os.Getenv("SYNC_LOG_SLOW_LOCK")); err == nil {
 		l.enableDebug = b
-		debug = b
-		l.Debugf("Set lock debug to: %v", debug)
+		logSlowLock = b
+		l.Debugf("Set lock logSlowLock to: %v", logSlowLock)
 	}
 
-	if n, _ := strconv.Atoi(os.Getenv("SYNC_LOCK_THRESHOLD")); n > 0 {
-		threshold = time.Duration(n) * time.Millisecond
-		l.Debugf("Set lock threshold at %v", threshold)
+	if n, _ := strconv.Atoi(os.Getenv("SYNC_SLOW_LOCK_THRESHOLD")); n > 0 {
+		slowLockThreshold = time.Duration(n) * time.Millisecond
+		l.Debugf("Set lock slowLockThreshold at %v", slowLockThreshold)
+		l.enableDebug = true
+		logSlowLock = true
 	}
 
 	if b, err := strconv.ParseBool(os.Getenv("SYNC_USE_DEADLOCK")); err == nil {

@@ -17,7 +17,7 @@ func NewRWMutex() RWMutex {
 	if useDeadlock {
 		return &deadlock.RWMutex{}
 	}
-	if debug {
+	if logSlowLock {
 		mutex := &loggedRWMutex{
 			readHolders: make(map[int][]holder),
 			unlockers:   make(chan holder, 1024),
@@ -51,7 +51,7 @@ func (m *loggedRWMutex) Lock() {
 
 	duration := h.time.Sub(start)
 
-	if duration > threshold {
+	if duration > slowLockThreshold {
 		var unlockerStrings []string
 	loop:
 		for {
@@ -69,7 +69,7 @@ func (m *loggedRWMutex) Lock() {
 func (m *loggedRWMutex) Unlock() {
 	currentHolder := m.holder.Load().(holder)
 	duration := timeNow().Sub(currentHolder.time)
-	if duration >= threshold {
+	if duration >= slowLockThreshold {
 		l.Debugf("RWMutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
 	}
 	m.holder.Store(holder{})
