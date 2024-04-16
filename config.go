@@ -10,13 +10,13 @@ import (
 var (
 	logSlowLock       = false
 	slowLockThreshold = 100 * time.Millisecond
-	l                 = &logger{}
+	l                 = Logger(&logger{})
 	useDeadlock       = false
 )
 
 func init() {
 	if b, err := strconv.ParseBool(os.Getenv("SYNC_LOG_SLOW_LOCK")); err == nil {
-		l.enableDebug = b
+		l = &logger{enableDebug: b}
 		logSlowLock = b
 		l.Debugf("Set lock logSlowLock to: %v", logSlowLock)
 	}
@@ -24,7 +24,7 @@ func init() {
 	if n, _ := strconv.Atoi(os.Getenv("SYNC_SLOW_LOCK_THRESHOLD")); n > 0 {
 		slowLockThreshold = time.Duration(n) * time.Millisecond
 		l.Debugf("Set lock slowLockThreshold at %v", slowLockThreshold)
-		l.enableDebug = true
+		l = &logger{enableDebug: true}
 		logSlowLock = true
 	}
 
@@ -38,4 +38,8 @@ func init() {
 		l.Debugf("Enabling lock deadlocking at %v", deadlock.Opts.DeadlockTimeout)
 		useDeadlock = true
 	}
+}
+
+func SetLog(log Logger) {
+	l = log
 }
