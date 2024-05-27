@@ -24,6 +24,6 @@ func (wg *loggedWaitGroup) Wait() {
 	wg.WaitGroup.Wait()
 	duration := timeNow().Sub(start)
 	if duration >= slowLockThreshold {
-		l.Debugf("WaitGroup took %v at %s", duration, getHolder())
+		l.Debugf("WaitGroup took %v At %s", duration, getHolder())
 	}
 }

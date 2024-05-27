@@ -19,10 +19,10 @@ func NewRWMutex() RWMutex {
 	}
 	if logSlowLock {
 		mutex := &loggedRWMutex{
-			readHolders: make(map[int][]holder),
-			unlockers:   make(chan holder, 1024),
+			readHolders: make(map[int][]Holder),
+			unlockers:   make(chan Holder, 1024),
 		}
-		mutex.holder.Store(holder{})
+		mutex.holder.Store(Holder{})
 		return mutex
 	}
 	return &sync.RWMutex{}
@@ -32,11 +32,11 @@ type loggedRWMutex struct {
 	sync.RWMutex
 	holder atomic.Value
 
-	readHolders    map[int][]holder
+	readHolders    map[int][]Holder
 	readHoldersMut sync.Mutex
 
 	logUnlockers int32
-	unlockers    chan holder
+	unlockers    chan Holder
 }
 
 func (m *loggedRWMutex) Lock() {
@@ -49,7 +49,7 @@ func (m *loggedRWMutex) Lock() {
 	h := getHolder()
 	m.holder.Store(h)
 
-	duration := h.time.Sub(start)
+	duration := h.Time.Sub(start)
 
 	if duration > slowLockThreshold {
 		var unlockerStrings []string
@@ -62,25 +62,26 @@ func (m *loggedRWMutex) Lock() {
 				break loop
 			}
 		}
-		l.Debugf("RWMutex took %v to lock. Locked at %s. RUnlockers while locking:\n%s", duration, h.at, strings.Join(unlockerStrings, "\n"))
+		l.Debugf("RWMutex took %v to lock. Locked at %s. RUnlockers while locking:\n%s", duration, h.At, strings.Join(unlockerStrings, "\n"))
 	}
 }
 
 func (m *loggedRWMutex) Unlock() {
-	currentHolder := m.holder.Load().(holder)
-	duration := timeNow().Sub(currentHolder.time)
+	currentHolder := m.holder.Load().(Holder)
+	duration := timeNow().Sub(currentHolder.Time)
 	if duration >= slowLockThreshold {
-		l.Debugf("RWMutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
+		l.Debugf("RWMutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.At, getHolder().At)
 	}
-	m.holder.Store(holder{})
+	m.holder.Store(Holder{})
 	m.RWMutex.Unlock()
 }
 
 func (m *loggedRWMutex) RLock() {
 	m.RWMutex.RLock()
 	h := getHolder()
+	h.ReadOnly = true
 	m.readHoldersMut.Lock()
-	m.readHolders[h.goid] = append(m.readHolders[h.goid], h)
+	m.readHolders[h.GoId] = append(m.readHolders[h.GoId], h)
 	m.readHoldersMut.Unlock()
 }
 
@@ -103,14 +104,15 @@ func (m *loggedRWMutex) RUnlock() {
 	m.RWMutex.RUnlock()
 }
 
-func (m *loggedRWMutex) Holders() string {
-	output := m.holder.Load().(holder).String() + " (writer)"
+func (m *loggedRWMutex) Holders() []Holder {
+	ret := []Holder{}
+	ret = append(ret, m.holder.Load().(Holder))
 	m.readHoldersMut.Lock()
 	for _, holders := range m.readHolders {
 		for _, h := range holders {
-			output += "\n" + h.String() + " (reader)"
+			ret = append(ret, h)
 		}
 	}
 	m.readHoldersMut.Unlock()
-	return output
+	return ret
 }

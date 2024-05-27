@@ -11,13 +11,17 @@ type Mutex interface {
 	Unlock()
 }
 
+type Holders interface {
+	Holders() []Holder
+}
+
 func NewMutex() Mutex {
 	if useDeadlock {
 		return &deadlock.Mutex{}
 	}
 	if logSlowLock {
 		mutex := &loggedMutex{}
-		mutex.holder.Store(holder{})
+		mutex.holder.Store(Holder{})
 		return mutex
 	}
 	return &sync.Mutex{}
@@ -34,15 +38,15 @@ func (m *loggedMutex) Lock() {
 }
 
 func (m *loggedMutex) Unlock() {
-	currentHolder := m.holder.Load().(holder)
-	duration := timeNow().Sub(currentHolder.time)
+	currentHolder := m.holder.Load().(Holder)
+	duration := timeNow().Sub(currentHolder.Time)
 	if duration >= slowLockThreshold {
-		l.Debugf("Mutex held for %v. Locked at %s unlocked at %s", duration, currentHolder.at, getHolder().at)
+		l.Debugf("Mutex held for %v. Locked At %s unlocked At %s", duration, currentHolder.At, getHolder().At)
 	}
-	m.holder.Store(holder{})
+	m.holder.Store(Holder{})
 	m.Mutex.Unlock()
 }
 
-func (m *loggedMutex) Holders() string {
-	return m.holder.Load().(holder).String()
+func (m *loggedMutex) Holders() []Holder {
+	return append([]Holder{}, m.holder.Load().(Holder))
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestTimeout(t *testing.T) {
-	once := once{}
+	once := NewOnce()
 
 	err := once.DoTimeout(100*time.Millisecond, func() error {
 		time.Sleep(200 * time.Millisecond)
@@ -24,7 +24,7 @@ func (o *one) Increment() {
 	*o++
 }
 
-func run(t *testing.T, once *once, o *one, c chan bool) {
+func run(t *testing.T, once Once, o *one, c chan bool) {
 	once.Do(func() error {
 		o.Increment()
 		return nil
@@ -37,7 +37,7 @@ func run(t *testing.T, once *once, o *one, c chan bool) {
 
 func TestOnce(t *testing.T) {
 	o := new(one)
-	once := new(once)
+	once := NewOnce()
 	c := make(chan bool)
 	const N = 10
 	for i := 0; i < N; i++ {
@@ -52,7 +52,8 @@ func TestOnce(t *testing.T) {
 }
 
 func TestOncePanic(t *testing.T) {
-	var once once
+	once := NewOnce()
+
 	func() {
 		defer func() {
 			if r := recover(); r == nil {
@@ -71,7 +72,8 @@ func TestOncePanic(t *testing.T) {
 }
 
 func BenchmarkOnce(b *testing.B) {
-	var once once
+	once := NewOnce()
+
 	f := func() error { return nil }
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

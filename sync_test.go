@@ -2,11 +2,12 @@
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
-// You can obtain one at https://mozilla.org/MPL/2.0/.
+// You can obtain one At https://mozilla.org/MPL/2.0/.
 
 package sync
 
 import (
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"sync"
 	"testing"
@@ -72,6 +73,9 @@ func TestMutex(t *testing.T) {
 	mut := NewMutex()
 	mut.Lock()
 	clock.wind(shortWait)
+	if h, ok := mut.(Holders); ok {
+		assert.Equal(t, "sync/sync_test.go:74", h.Holders()[0].At)
+	}
 	mut.Unlock()
 
 	if len(messages) > 0 {
@@ -80,6 +84,10 @@ func TestMutex(t *testing.T) {
 
 	mut.Lock()
 	clock.wind(longWait)
+	if h, ok := mut.(Holders); ok {
+		assert.Equal(t, "sync/sync_test.go:85", h.Holders()[0].At)
+		assert.Less(t, longWait, timeNow().Sub(h.Holders()[0].Time))
+	}
 	mut.Unlock()
 
 	if len(messages) != 1 {
@@ -109,6 +117,9 @@ func TestRWMutex(t *testing.T) {
 
 	mut := NewRWMutex()
 	mut.Lock()
+	if h, ok := mut.(Holders); ok {
+		assert.Equal(t, "sync/sync_test.go:119", h.Holders()[0].At)
+	}
 	clock.wind(shortWait)
 	mut.Unlock()
 
@@ -152,6 +163,13 @@ func TestRWMutex(t *testing.T) {
 	mut.RLock()
 	mut.RLock()
 	mut.RLock()
+	if h, ok := mut.(Holders); ok {
+		ats := []string{}
+		for _, hh := range h.Holders() {
+			ats = append(ats, hh.At)
+		}
+		assert.Equal(t, []string{"", "sync/sync_test.go:163", "sync/sync_test.go:164", "sync/sync_test.go:165"}, ats)
+	}
 	_ = 1 // skip empty critical section check
 	mut.RUnlock()
 	mut.RUnlock()
@@ -216,7 +234,7 @@ func TestWaitGroup(t *testing.T) {
 }
 
 func TestTimeoutCond(t *testing.T) {
-	// WARNING this test relies heavily on threads not being stalled at particular points.
+	// WARNING this test relies heavily on threads not being stalled At particular points.
 	// As such, it's pretty unstable on the build server. It has been left in as it still
 	// exercises the deadlock detector, and one of the two things it tests is still functional.
 	// See the comments in runLocks

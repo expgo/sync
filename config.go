@@ -23,7 +23,7 @@ func init() {
 
 	if n, _ := strconv.Atoi(os.Getenv("SYNC_SLOW_LOCK_THRESHOLD")); n > 0 {
 		slowLockThreshold = time.Duration(n) * time.Millisecond
-		l.Debugf("Set lock slowLockThreshold at %v", slowLockThreshold)
+		l.Debugf("Set lock slowLockThreshold At %v", slowLockThreshold)
 		l = &logger{enableDebug: true}
 		logSlowLock = true
 	}
@@ -35,7 +35,7 @@ func init() {
 
 	if n, _ := strconv.Atoi(os.Getenv("SYNC_DEADLOCK_TIMEOUT")); n > 0 {
 		deadlock.Opts.DeadlockTimeout = time.Duration(n) * time.Second
-		l.Debugf("Enabling lock deadlocking at %v", deadlock.Opts.DeadlockTimeout)
+		l.Debugf("Enabling lock deadlocking At %v", deadlock.Opts.DeadlockTimeout)
 		useDeadlock = true
 	}
 }
