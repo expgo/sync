@@ -12,6 +12,7 @@ type Once interface {
 	DoContext(ctx context.Context, f func() error) error
 }
 
+// NewOnce returns a new instance of the Once interface.
 func NewOnce() Once {
 	return &once{
 		m: NewMutex(),
@@ -23,6 +24,8 @@ type once struct {
 	done uint32
 }
 
+// Do executes the given function f if it has not been executed before.
+// It returns nil if the function has already been executed.
 func (o *once) Do(f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
@@ -38,6 +41,9 @@ func (o *once) Do(f func() error) error {
 	return nil
 }
 
+// DoTimeout executes the given function f if it has not been executed before, with a specified timeout.
+// It returns nil if the function has already been executed or if the timeout is <= 0.
+// The function is executed in a goroutine and the execution is canceled if the timeout duration is reached.
 func (o *once) DoTimeout(timeout time.Duration, f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
@@ -59,6 +65,8 @@ func (o *once) DoTimeout(timeout time.Duration, f func() error) error {
 	return nil
 }
 
+// DoContext executes the given function f if it has not been executed before, with the provided context ctx.
+// It returns nil if the function has already been executed or if the context expires before the function completes.
 func (o *once) DoContext(ctx context.Context, f func() error) error {
 	if atomic.LoadUint32(&o.done) == 1 {
 		return nil
