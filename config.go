@@ -15,7 +15,7 @@ var (
 )
 
 func init() {
-	if b, err := strconv.ParseBool(os.Getenv("SYNC_LOG_SLOW_LOCK")); err == nil {
+	if b, err := strconv.ParseBool(os.Getenv("SYNC_USE_SLOW_LOCK")); err == nil {
 		l = &logger{enableDebug: b}
 		logSlowLock = b
 		l.Debugf("Set lock logSlowLock to: %v", logSlowLock)
