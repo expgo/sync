@@ -2,7 +2,7 @@
 // Plugins:
 //   - github.com/expgo/factory/annotation
 
-package wire
+package sync
 
 import (
 	"github.com/expgo/factory"
